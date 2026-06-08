@@ -32,16 +32,16 @@ class ConnectionDatabase:
         self.target_database = target_database
 
     def connect(self) -> None:
-        if self.sql_conn is not None and not self.sql_conn.closed:
-            self.sql_conn.close()
+        if self.__sql_conn is not None and not self.__sql_conn.closed:
+            self.__sql_conn.close()
 
-        self.sql_conn = pyodbc.connect(self.__connection_string)
+        self.__sql_conn = pyodbc.connect(self.__connection_string)
 
     def execute_query_to_dto(
         self,
         dto_target: Type[T],
         query: str,
-        strict: bool,
+        strict: bool = True,
         params: Dict[str, object] | None = None,
     ) -> List[T]:
         return list(
@@ -89,11 +89,17 @@ class ConnectionDatabase:
             cursor.close()
 
     @staticmethod
-    def from_request_login(connection_adress: str = None):
+    def from_request_login(
+        connection_adress: str = None,
+        target_database: str = None,
+        driver_name: str = "SQL Server Native Client 11.0",
+    ):
         return ConnectionDatabase(
             login=input("Login database: "),
             password=getpass("Password database: ", echo_char="*"),
             connection_adress=connection_adress,
+            target_database=target_database,
+            driver_name=driver_name,
         )
 
     @property
@@ -141,6 +147,8 @@ class ConnectionDatabase:
 
     @property
     def sql_conn(self) -> pyodbc.Connection:
+        if self.__sql_conn is None:
+            self.connect()
         return self.__sql_conn
 
     @sql_conn.setter
