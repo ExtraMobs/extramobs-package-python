@@ -1,9 +1,12 @@
-# Ignore all files
+# 1. Ignora absolutamente tudo por padrão
 *
 
-# Include ignore rules
-!.gitignore
+# 2. Abre exceção para as pastas (para o Git conseguir navegar e olhar dentro delas)
+!*/
 
-# Include script
-!extramobs
-!extramobs/**
+# 3. Volta a ignorar as pastas que não queremos (como o cache do Python)
+__pycache__/
+
+# 4. Abre exceção para os arquivos que você realmente quer versionar
+!.gitignore
+!*.py
