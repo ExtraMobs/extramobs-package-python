@@ -1,0 +1,9 @@
+# Ignore all files
+*
+
+# Include ignore rules
+!.gitignore
+
+# Include script
+!extramobs
+!extramobs/**
