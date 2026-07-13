@@ -1,8 +1,11 @@
 from dataclasses import fields
 from getpass import getpass
+import pprint
 from typing import Any, Dict, Generator, List, Type, TypeVar
 
 import pyodbc
+
+from .dto_validator import StrictMode, DTOValidator
 
 T = TypeVar("T")
 
@@ -41,7 +44,7 @@ class ConnectionDatabase:
         self,
         dto_target: Type[T],
         query: str,
-        strict: bool = True,
+        strict: Any = StrictMode.FULL_STRICT,
         params: Dict[str, object] | None = None,
     ) -> List[T]:
         return list(
@@ -52,21 +55,15 @@ class ConnectionDatabase:
         self,
         dto_target: Type[T],
         query: str,
-        strict: bool = True,
+        strict: Any = StrictMode.FULL_STRICT,
         params: List[Any] | None = None,
     ) -> Generator[T]:
 
-        dto_fields = [f.name for f in fields(dto_target)]
+        dto_fields = {f.name: f.type for f in fields(dto_target)}
+        parsed_mode = StrictMode.parse(strict)
+        
         for dict_object in self.execute_query_generator(query, params):
-            if strict:
-                if sorted(list(dict_object.keys())) != sorted(dto_fields):
-                    raise Exception(
-                        "Mismatched fields: Query result and DTO structure do not align."
-                    )
-            else:
-                for key in list(dict_object.keys()):
-                    if not key in dto_fields:
-                        dict_object.pop(key)
+            DTOValidator.process(dict_object, dto_fields, parsed_mode)
             yield dto_target(**dict_object)
 
     def execute_query(
