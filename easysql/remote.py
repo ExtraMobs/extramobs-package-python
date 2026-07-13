@@ -85,6 +85,14 @@ class ConnectionDatabase:
         finally:
             cursor.close()
 
+    def execute_non_query(self, query: str, params: List[Any] | None = None) -> None:
+        self.connect()
+        cursor = self.sql_conn.execute(query, () if params is None else params)
+        try:
+            cursor.commit()
+        finally:
+            cursor.close()
+
     @staticmethod
     def from_request_login(
         connection_adress: str = None,
