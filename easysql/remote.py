@@ -85,10 +85,18 @@ class ConnectionDatabase:
         finally:
             cursor.close()
 
-    def execute_non_query(self, query: str, params: List[Any] | None = None) -> None:
+    def execute_non_query(self, query: str, params: Any = None, many: bool = False) -> None:
         self.connect()
-        cursor = self.sql_conn.execute(query, () if params is None else params)
+        cursor = self.sql_conn.cursor()
+        
         try:
+            if many:
+                if hasattr(cursor, 'fast_executemany'):
+                    cursor.fast_executemany = True
+                cursor.executemany(query, params or [])
+            else:
+                cursor.execute(query, () if params is None else params)
+            
             cursor.commit()
         finally:
             cursor.close()
